@@ -11,7 +11,7 @@
 #define	_NSD_H_
 
 #include <signal.h>
-
+#include "geo_radix_tree.h"
 #include "dns.h"
 #include "edns.h"
 struct netio_handler;
@@ -154,6 +154,7 @@ struct	nsd
 	volatile sig_atomic_t quit_sync_done;
 	unsigned		server_kind;
 	struct namedb	*db;
+	geo_radix_tree_t *geo_tree;
 	int				debug;
 
 	size_t            child_count;

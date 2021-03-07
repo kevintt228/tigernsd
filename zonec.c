@@ -43,6 +43,9 @@
 #include "zparser.h"
 #include "options.h"
 #include "nsec3.h"
+#ifdef DNSX_GSLB
+#include "geo_core.h"
+#endif
 
 #define ILNP_MAXDIGITS 4
 #define ILNP_NUMGROUPS 4
@@ -1359,6 +1362,21 @@ has_soa(domain_type* domain)
 	return 0;
 }
 
+static inline void dnsx_rrs_move(rr_type *dest, rr_type *src, int cnt)
+{
+	memcpy(dest, src, (cnt) * sizeof(rr_type));
+#ifdef DNSX_GSLB
+	int i;
+	for (i = 0; i < cnt; i++) {
+		if (src[i].cache_item) {
+			dnsx_attach_rr_to_cache((svc_ipv4_hash_item_t *)dest[i].cache_item,
+							&dest[i]);
+			dnsx_dettach_rr_from_cache(&src[i]);
+		}
+	}
+#endif
+}
+
 int
 process_rr(void)
 {
@@ -1450,13 +1468,18 @@ process_rr(void)
 		o = rrset->rrs;
 		rrset->rrs = (rr_type *) region_alloc(parser->region,
 			(rrset->rr_count + 1) * sizeof(rr_type));
-		memcpy(rrset->rrs, o, (rrset->rr_count) * sizeof(rr_type));
+		dnsx_rrs_move(rrset->rrs, o, rrset->rr_count);
 		region_recycle(parser->region, o,
 			(rrset->rr_count) * sizeof(rr_type));
 		rrset->rrs[rrset->rr_count] = *rr;
 		++rrset->rr_count;
 	}
 
+#ifdef DNSX_GSLB
+	if (rr->type == TYPE_A) {
+		dnsx_add_ip_rr_to_cache(&rrset->rrs[rrset->rr_count]-1);
+	}
+#endif
 	if(rr->type == TYPE_DNAME && rrset->rr_count > 1) {
 		if(zone_is_slave(zone->opts))
 			zc_warning_prev_line("multiple DNAMEs at the same name");

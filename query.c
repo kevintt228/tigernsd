@@ -1214,8 +1214,9 @@ answer_query(struct nsd *nsd, struct query *q)
 	int exact;
 	uint16_t offset;
 	answer_type answer;
-
+	
 	answer_init(&answer);
+	q->geo_tree = nsd->geo_tree;
 
 	exact = namedb_lookup(nsd->db, q->qname, &closest_match, &closest_encloser);
 	if (!closest_encloser->is_existing) {

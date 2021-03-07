@@ -263,7 +263,7 @@ fi
 if test "x$CFLAGS" = "x" ; then
 	ACX_CHECK_COMPILER_FLAG(g, [CFLAGS="$CFLAGS -g"])
 	# we do not use O3 because it causes miscompilations.
-	ACX_CHECK_COMPILER_FLAG(O2, [CFLAGS="$CFLAGS -O2"])
+	#ACX_CHECK_COMPILER_FLAG(O2, [CFLAGS="$CFLAGS -O2"])
 	ACX_CHECK_FLTO
 fi
 AC_C_CONST
@@ -759,6 +759,20 @@ case "$enable_ratelimit" in
 		;;
 esac
 AC_SUBST(ratelimit)
+
+AC_ARG_ENABLE(gslb, AC_HELP_STRING([--enable-gslb], [Enable GSLB]))
+case "$enable_gslb" in
+	yes)
+		AC_DEFINE_UNQUOTED([GSLB], [], [Define this to enable GSLB.])
+		dnl causes awk to not match the exclusion start marker.
+		gslb="xx"
+		;;
+	no|*)
+		gslb=""
+		;;
+esac
+AC_SUBST(gslb)
+
 
 # we need SSL for TSIG (and maybe also for NSEC3).
 CHECK_SSL

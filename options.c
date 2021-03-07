@@ -55,6 +55,8 @@ nsd_options_create(region_type* region)
 	opt->logfile = 0;
 	opt->log_time_ascii = 1;
 	opt->round_robin = 0; /* also packet.h::round_robin */
+	opt->do_health_check = 0;
+	opt->geo_db_filepath = NULL;
 	opt->server_count = 1;
 	opt->tcp_count = 100;
 	opt->tcp_query_count = 0;

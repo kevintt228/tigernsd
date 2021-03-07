@@ -10,6 +10,7 @@
 #ifndef _QUERY_H_
 #define _QUERY_H_
 
+#include "config.h"
 #include <assert.h>
 #include <string.h>
 
@@ -32,7 +33,9 @@ struct query {
 	 * Memory region freed whenever the query is reset.
 	 */
 	region_type *region;
-
+#ifdef DNSX_GSLB
+	geo_radix_tree_t *geo_tree;
+#endif
 	/*
 	 * The address the query was received from.
 	 */

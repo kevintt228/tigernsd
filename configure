@@ -625,6 +625,7 @@ ac_subst_vars='LTLIBOBJS
 SSL_LIBS
 HAVE_SSL
 ratelimit
+gslb
 LIBOBJS
 YFLAGS
 YACC
@@ -723,6 +724,7 @@ enable_ipv6
 enable_bind8_stats
 enable_checking
 enable_ratelimit
+enable_gslb
 with_ssl
 enable_nsec3
 enable_minimal_responses
@@ -1358,6 +1360,7 @@ Optional Features:
   --enable-bind8-stats    Enables BIND8 like NSTATS & XSTATS
   --enable-checking       Enable internal runtime checks
   --enable-ratelimit      Enable rate limiting
+  --enable-gslb           Enable global server load balancing
   --disable-nsec3         Disable NSEC3 support
   --disable-minimal-responses
                           Disable response minimization. More truncation.
@@ -8430,6 +8433,27 @@ _ACEOF
 		ratelimit=""
 		;;
 esac
+
+# Check whether --enable-gslb was given.
+if test "${enable_gslb+set}" = set; then :
+  enableval=$enable_gslb;
+fi
+
+#as_fn_error $? "enable_gslb= $enable_gslb" "$LINENO" 5
+case "$enable_gslb" in
+	yes)
+
+cat >>confdefs.h <<_ACEOF
+#define DNSX_GSLB /**/
+_ACEOF
+
+				gslb="xx"
+		;;
+	no|*)
+		gslb=""
+		;;
+esac
+
 
 
 # we need SSL for TSIG (and maybe also for NSEC3).

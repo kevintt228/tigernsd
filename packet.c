@@ -14,6 +14,7 @@
 #include "packet.h"
 #include "query.h"
 #include "rdata.h"
+#include "geo_core.h"
 
 int round_robin = 0;
 
@@ -142,6 +143,19 @@ packet_encode_rrset(query_type *query,
 
 	truncation_mark = buffer_position(query->packet);
 
+#ifdef DNSX_GSLB
+	i = dnsx_get_best_rr_from_rrset(query, rrset);
+	if (i >= 0 && i < rrset->rr_count) {
+		if (packet_encode_rr(query, owner, &rrset->rrs[i],
+			rrset->rrs[i].ttl)) {
+			++added;
+		} else {
+			all_added = 0;
+			start = 0;
+		}
+		goto rr_done;
+	}
+#endif
 	if(do_robin && rrset->rr_count)
 		start = (uint16_t)(round_robin_off++ % rrset->rr_count);
 	else	start = 0;
@@ -164,7 +178,9 @@ packet_encode_rrset(query_type *query,
 			break;
 		}
 	}
-
+#ifdef DNSX_GSLB
+rr_done:
+#endif
 	if (all_added &&
 	    query->edns.dnssec_ok &&
 	    zone_is_secure(rrset->zone) &&

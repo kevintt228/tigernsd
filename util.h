@@ -32,6 +32,7 @@ struct region;
 #define PADDING(n, alignment)   \
 	(ALIGN_UP((n), (alignment)) - (n))
 
+#define MAX_LINE_LEN 128
 /*
  * Initialize the logging system.  All messages are logged to stderr
  * until log_open and log_set_log_function are called.
@@ -373,4 +374,7 @@ void addr2str(
 #endif
 	, char* str, size_t len);
 
+int check_file_existing(const char *filepath);
+extern int nsd_pagesize;
+int nsd_os_init();
 #endif /* _UTIL_H_ */

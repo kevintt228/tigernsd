@@ -32,7 +32,7 @@ extern "C"
 /* these need to be global, otherwise they cannot be used inside yacc */
 extern config_parser_state_t* cfg_parser;
 
-#if 0
+#if 1
 #define OUTYY(s) printf s /* used ONLY when debugging */
 #else
 #define OUTYY(s)
@@ -67,6 +67,7 @@ extern config_parser_state_t* cfg_parser;
 %token VAR_RRL_IPV4_PREFIX_LENGTH VAR_RRL_IPV6_PREFIX_LENGTH
 %token VAR_RRL_WHITELIST_RATELIMIT VAR_RRL_WHITELIST
 %token VAR_ZONEFILES_CHECK VAR_ZONEFILES_WRITE VAR_LOG_TIME_ASCII
+%token VAR_DO_HEALTH_CHECK VAR_GEO_DB_FILEPATH
 %token VAR_ROUND_ROBIN
 
 %%
@@ -96,7 +97,8 @@ content_server: server_ip_address | server_ip_transparent | server_debug_mode | 
 	server_rrl_size | server_rrl_ratelimit | server_rrl_slip | 
 	server_rrl_ipv4_prefix_length | server_rrl_ipv6_prefix_length | server_rrl_whitelist_ratelimit |
 	server_zonefiles_check | server_do_ip4 | server_do_ip6 |
-	server_zonefiles_write | server_log_time_ascii | server_round_robin;
+	server_zonefiles_write | server_log_time_ascii | server_round_robin |
+	server_do_health_check | server_geo_db_file;
 server_ip_address: VAR_IP_ADDRESS STRING 
 	{ 
 		OUTYY(("P(server_ip_address:%s)\n", $2)); 
@@ -258,6 +260,27 @@ server_round_robin: VAR_ROUND_ROBIN STRING
 		}
 	}
 	;
+server_do_health_check: VAR_DO_HEALTH_CHECK STRING 
+	{ 
+		OUTYY(("P(server_do_health_check:%s)\n", $2)); 
+		if(strcmp($2, "yes") != 0 && strcmp($2, "no") != 0)
+			yyerror("expected yes or no.");
+		else {
+			cfg_parser->opt->do_health_check = (strcmp($2, "yes")==0);
+		}
+	}
+	;
+server_geo_db_file: VAR_GEO_DB_FILEPATH STRING 
+	{ 
+		OUTYY(("P(server_geo_db_file:%s)\n", $2)); 
+		if(check_file_existing($2) == 0)
+			yyerror("geo_db file does not exist.");
+		else {
+			cfg_parser->opt->geo_db_filepath = region_strdup(cfg_parser->opt->region, $2);;
+		}
+	}
+	;
+
 server_server_count: VAR_SERVER_COUNT STRING
 	{ 
 		OUTYY(("P(server_server_count:%s)\n", $2)); 

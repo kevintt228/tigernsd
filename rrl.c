@@ -116,10 +116,29 @@ void rrl_init(size_t ch)
 #endif
 }
 
+#define rrl_ipv6_mask(pls) (((pls) <= 32) ? (((uint64_t) htonl(0xffffffff << (32-(pls)))) << 32) : (((uint64_t) htonl(0xffffffff << (64-(pls)))) | (((uint64_t)0xffffffff)<<32)))
 /** return the source netblock of the query, this is the genuine source
  * for genuine queries and the target for reflected packets */
-static uint64_t rrl_get_source(query_type* query, uint16_t* c2)
+uint64_t rrl_get_source(query_type* query, uint16_t* c2)
 {
+	if (query->edns.client_subnet_ok) {
+		switch (ntohs(query->edns.client_subnet.family)) {
+			case EDNS_CLIENT_SUBNET_IPV4:
+				*c2 = 0;
+				return (query->edns.client_subnet.addr.ipv4 & htonl(0xffffffff << (32 - query->edns.client_subnet.source_netmask)));
+#ifdef INET6
+			case EDNS_CLIENT_SUBNET_IPV6:
+				{
+					uint64_t s;
+					*c2 = (rrl_ip6 > query->edns.client_subnet.source_netmask) ? (query->edns.client_subnet.source_netmask) : (rrl_ip6);
+					memmove(&s, &query->edns.client_subnet.addr.ipv6, sizeof(s));
+					return s & rrl_ipv6_mask(*c2);
+				}
+#endif
+			default:
+				return 0;
+		}
+	}
 	/* note there is an IPv6 subnet, that maps
 	 * to the same buckets as IPv4 space, but there is a flag in c2
 	 * that makes the hash different */

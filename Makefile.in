@@ -36,7 +36,7 @@ U=
 
 CC		= @CC@
 CPPFLAGS	= @CPPFLAGS@
-CFLAGS		= @CFLAGS@
+CFLAGS		= @CFLAGS@ -I include/
 LDFLAGS		= @LDFLAGS@
 LIBS		= @LIBS@
 SSL_LIBS	= @SSL_LIBS@
@@ -70,7 +70,7 @@ EDIT		= sed \
 TARGETS=nsd nsd-checkconf nsd-checkzone nsd-control nsd.conf.sample nsd-control-setup.sh
 MANUALS=nsd.8 nsd-checkconf.8 nsd-checkzone.8 nsd-control.8 nsd.conf.5
 
-COMMON_OBJ=answer.o axfr.o buffer.o configlexer.o configparser.o dname.o dns.o edns.o iterated_hash.o lookup3.o namedb.o nsec3.o options.o packet.o query.o rbtree.o radtree.o rdata.o region-allocator.o rrl.o tsig.o tsig-openssl.o udb.o udbradtree.o udbzone.o util.o
+COMMON_OBJ=answer.o axfr.o buffer.o configlexer.o configparser.o dname.o dns.o edns.o iterated_hash.o lookup3.o namedb.o nsec3.o options.o packet.o query.o rbtree.o radtree.o rdata.o region-allocator.o rrl.o tsig.o tsig-openssl.o udb.o udbradtree.o udbzone.o util.o geo_radix_tree.o dnsx_hash.o geo_core.o
 XFRD_OBJ=xfrd-disk.o xfrd-notify.o xfrd-tcp.o xfrd.o remote.o
 NSD_OBJ=$(COMMON_OBJ) $(XFRD_OBJ) difffile.o ipc.o mini_event.o netio.o nsd.o server.o dbaccess.o dbcreate.o zlexer.o zonec.o zparser.o
 ALL_OBJ=$(NSD_OBJ) nsd-checkconf.o nsd-checkzone.o nsd-control.o nsd-mem.o
@@ -418,6 +418,9 @@ tsig-openssl.o: $(srcdir)/tsig-openssl.c config.h $(srcdir)/tsig-openssl.h $(src
  $(srcdir)/tsig.h $(srcdir)/buffer.h $(srcdir)/util.h $(srcdir)/dname.h
 udb.o: $(srcdir)/udb.c config.h $(srcdir)/udb.h $(srcdir)/lookup3.h $(srcdir)/util.h
 udbradtree.o: $(srcdir)/udbradtree.c config.h $(srcdir)/udbradtree.h $(srcdir)/udb.h $(srcdir)/radtree.h
+geo_radix_tree.o: $(srcdir)/geo_radix_tree.c config.h $(srcdir)/geo_radix_tree.h
+dnsx_hash.o: $(srcdir)/lib/dnsx_hash.c config.h $(srcdir)/include/dnsx_hash.h
+geo_core.o: $(srcdir)/geo_core.c $(srcdir)/geo_radix_tree.c config.h $(srcdir)/geo_radix_tree.h $(srcdir)/rrl.c $(srcdir)/rrl.h $(srcdir)/query.h
 udbzone.o: $(srcdir)/udbzone.c config.h $(srcdir)/udbzone.h $(srcdir)/udb.h $(srcdir)/dns.h $(srcdir)/udbradtree.h $(srcdir)/util.h \
  $(srcdir)/iterated_hash.h $(srcdir)/dname.h $(srcdir)/buffer.h $(srcdir)/region-allocator.h $(srcdir)/difffile.h $(srcdir)/rbtree.h \
  $(srcdir)/namedb.h $(srcdir)/radtree.h $(srcdir)/options.h

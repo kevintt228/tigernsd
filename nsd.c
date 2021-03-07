@@ -388,6 +388,7 @@ bind8_stats (struct nsd *nsd)
 }
 #endif /* BIND8_STATS */
 
+
 extern char *optarg;
 extern int optind;
 
@@ -415,6 +416,8 @@ main(int argc, char *argv[])
 	char* argv0 = (argv0 = strrchr(argv[0], '/')) ? argv0 + 1 : argv[0];
 
 	log_init(argv0);
+
+	 nsd_os_init();
 
 	/* Initialize the server handler... */
 	memset(&nsd, 0, sizeof(struct nsd));
@@ -607,6 +610,11 @@ main(int argc, char *argv[])
 	if(!parse_options_file(nsd.options, configfile, NULL, NULL)) {
 		error("could not read config: %s\n", configfile);
 	}
+#ifdef DNSX_GSLB
+	if (parse_geo_db(&nsd)) {
+		error("could not read geo db %s\n", nsd.options->geo_db_filepath?:" ");
+	}
+#endif
 	if(!parse_zone_list_file(nsd.options)) {
 		error("could not read zonelist file %s\n",
 			nsd.options->zonelistfile);

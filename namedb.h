@@ -16,6 +16,9 @@
 #include "dns.h"
 #include "radtree.h"
 #include "rbtree.h"
+#ifdef DNSX_GSLB
+#include "dnsx_list.h"
+#endif
 struct zone_options;
 struct nsd_options;
 struct udb_base;
@@ -136,6 +139,10 @@ struct zone
 /* a RR in DNS */
 struct rr {
 	domain_type*     owner;
+#ifdef DNSX_GSLB
+	struct list_head cache_link;
+	void *cache_item;
+#endif
 	rdata_atom_type* rdatas;
 	uint32_t         ttl;
 	uint16_t         type;

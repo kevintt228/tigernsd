@@ -74,5 +74,5 @@ uint32_t rrl_update(query_type* query, uint32_t hash, uint64_t source,
 	uint16_t flags, int32_t now, uint32_t lm);
 /** set the rate limit counters, pass variables in qps */
 void rrl_set_limit(size_t lm, size_t wlm, size_t sm);
-
+uint64_t rrl_get_source(query_type* query, uint16_t* c2);
 #endif /* RRL_H */

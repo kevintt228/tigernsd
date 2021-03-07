@@ -1,0 +1,5 @@
+#!/bin/bash
+make realclean
+#./configure --with-libevent=no CFLAGS="-g" --enable-ratelimit --enable-gslb
+./configure CFLAGS="-g" --enable-ratelimit --enable-gslb
+make

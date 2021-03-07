@@ -46,6 +46,7 @@ int nsd_debug_level = 0;
 
 #define MSB_32 0x80000000
 
+int nsd_pagesize;
 int verbosity = 0;
 
 static const char *global_ident = NULL;
@@ -1034,3 +1035,24 @@ addr2str(
 		str, len))
 		strlcpy(str, "[unknown ip4, inet_ntop failed]", len);
 }
+
+int check_file_existing(const char *filepath)
+{
+	FILE *pfile = NULL;
+
+	if ((pfile = fopen(filepath, "r")) == NULL) {
+		return 0;
+	} else {
+		fclose(pfile);
+		return 1;
+	}
+}
+
+int nsd_os_init()
+{
+	nsd_pagesize = getpagesize();
+
+	return 0;
+}
+
+

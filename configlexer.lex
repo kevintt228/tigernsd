@@ -262,6 +262,8 @@ zonefiles-check{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_ZONEFILES_CHECK;
 zonefiles-write{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_ZONEFILES_WRITE;}
 log-time-ascii{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_LOG_TIME_ASCII;}
 round-robin{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_ROUND_ROBIN;}
+do-health-check{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_DO_HEALTH_CHECK;}
+geo-db-file{COLON}	{ LEXOUT(("v(%s) ", yytext)); return VAR_GEO_DB_FILEPATH;}
 {NEWLINE}		{ LEXOUT(("NL\n")); cfg_parser->line++;}
 
 	/* Quoted strings. Strip leading and ending quotes */

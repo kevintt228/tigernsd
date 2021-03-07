@@ -55,6 +55,20 @@ edns_init_record(edns_record_type *edns)
 	edns->maxlen = 0;
 	edns->dnssec_ok = 0;
 	edns->nsid = 0;
+	memset(&edns->client_subnet, 0, sizeof(edns->client_subnet));
+}
+
+int edns_parse_client_subnet(edns_record_type *edns, buffer_type *packet)
+{
+	uint8_t addr_len;
+	buffer_read(packet, &edns->client_subnet.family, 2);
+	edns->client_subnet.source_netmask = buffer_read_u8(packet);
+	edns->client_subnet.scope_netmask = buffer_read_u8(packet);
+	addr_len = (edns->client_subnet.source_netmask + 7) >> 3;
+	memset(&edns->client_subnet.addr, 0, sizeof(edns->client_subnet.addr));
+	buffer_read(packet, &edns->client_subnet.addr, addr_len);
+	edns->client_subnet_ok = 1;
+	return 0;
 }
 
 int
@@ -94,12 +108,21 @@ edns_parse_record(edns_record_type *edns, buffer_type *packet)
 		return 1;
 	}
 
-	if (opt_rdlen > 0) {
-		/* there is more to come, read opt code
-		 * should be NSID - there are no others */
-		opt_nsid = buffer_read_u16(packet);
-		edns->nsid = (opt_nsid == NSID_CODE);
-		/* extra check for the value */
+	while (opt_rdlen > 0) {
+		uint16_t opt_code;
+		uint16_t opt_len;
+
+		opt_code = buffer_read_u16(packet);
+		opt_len = buffer_read_u16(packet);
+		switch (opt_code) {
+			case EDNS_CLIENT_SUBNET:
+				edns_parse_client_subnet(edns, packet);
+				break;
+			case NSID_CODE:
+				edns->nsid = 1;
+				break;
+		}
+		opt_rdlen -= opt_len + 4;
 	}
 
 	edns->status = EDNS_OK;

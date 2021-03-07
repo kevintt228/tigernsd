@@ -414,6 +414,9 @@
 /* Define this to enable rate limiting. */
 #undef RATELIMIT
 
+/* Define this to enable GSLB. */
+#undef DNSX_GSLB
+
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 
