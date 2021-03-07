@@ -1,0 +1,38 @@
+; zone example.com written by NSD 4.1.0 on Fri Aug 21 21:46:50 2015
+$ORIGIN com.
+example	7200	IN	SOA	nl.example.com. chris.example.com. (
+		3338665984 600 60 3600 38400 )
+	7200	IN	NS	ie.example.com.
+	7200	IN	NS	nl.example.com.
+	7200	IN	NS	us.example.com.
+	7200	IN	MX	5 spamtitan.anu.net.
+	7200	IN	TXT	"v=spf1 a:mail3.anu.net ip4:80.93.25.175 ip4:67.202.99.74 ip4:83.96.156.169 ~all"
+
+$ORIGIN example.com.
+ie	7200	IN	A	192.168.105.158
+nl	7200	IN	A	192.168.105.159
+us	7200	IN	A	192.168.3.229
+www	7200	IN	A	103.24.1.162
+	7200	IN	A	127.0.0.3
+	7200	IN	A	127.0.0.4
+	7200	IN	A	180.174.212.227
+	7200	IN	A	192.168.2.158
+	7200	IN	A	192.168.2.159
+	7200	IN	A	192.168.3.158
+	7200	IN	A	192.168.3.159
+www1	7200	IN	A	192.168.1.159
+	7200	IN	A	192.168.2.229
+	7200	IN	A	192.168.3.229
+www2	7200	IN	A	192.168.1.159
+	138272	IN	A	192.168.2.229
+	7200	IN	A	192.168.2.228
+	7200	IN	A	192.168.3.216
+	7200	IN	A	192.168.3.217
+www3	1311072	IN	A	192.168.3.218
+mail	3600 IN MX 10 www.china.com.
+maix	65535 IN CNAME www1.sss.com
+aaa.cname 1311072  IN A  1.1.1.1
+aaa.cname 7200 IN A 2.2.2.2
+bbb.cname 7200 IN A 3.3.3.3
+bbb.cname 65635 IN A 4.4.4.4
+bbb.cname 65735 IN A 5.5.5.5
