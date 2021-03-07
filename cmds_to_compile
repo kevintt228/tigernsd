@@ -1,10 +1,11 @@
 #!/bin/bash
+yum install nsd -y
+#cp etc/* /etc/nsd/ -R
 make realclean
 #./configure --with-libevent=no CFLAGS="-g" --enable-ratelimit --enable-gslb
 ./configure CFLAGS="-g" --enable-ratelimit --enable-gslb --enable-gslb-debug
 make
-#make install
-./nsd -c etc/nsd.conf
-./nsd-control stop
-./nsd-control start
+make install
+nsd-control stop
+nsd-control start
 dig @127.0.0.1 aaa.cname.example.com +subnet=202.96.209.5

@@ -175,7 +175,7 @@ packet_encode_rrset(query_type *query,
 			/*1000000000000000 0x8000 -> FOREIGN DEFAULT*/
 			else if (rr_record_idx == 0x8000)
 				client_foreign_rr_found = 1; 
-			/*1000001111100000 0x81F0 -> FOREIGN CONTINENT DEFAULT*/
+			/*1000000111110000 0x81F0 -> FOREIGN CONTINENT DEFAULT*/
 			else if (rr_record_idx == (rr_record_idx&0x81F0))
 				client_continent_rr_found = 1;
 			/*1000000011111111 0x81FF -> FOREIGN COUNTRY DEFAULT*/
@@ -188,8 +188,8 @@ packet_encode_rrset(query_type *query,
 	}
 #ifdef DNSX_GSLB_DEBUG
 	log_msg(LOG_INFO, "client_isp_rr_found 0x0=%u client_china_rr_found 0x4000=%u "
-		"client_china_isp_rr_found 0x7F00=%u client_foreign_rr_found 0x8000=%u"
-		"client_continent_rr_found 0x81F0 =%u"
+		"client_china_isp_rr_found 0x7F00=%u client_foreign_rr_found 0x8000=%u "
+		"client_continent_rr_found 0x81F0 =%u "
 		"client_country_rr_found 0x83FF=%u client_diy_rr_found 0xC000=%u", 
 		client_isp_rr_found, client_china_rr_found,
 		client_continent_rr_found,
@@ -203,7 +203,7 @@ packet_encode_rrset(query_type *query,
 	else	start = 0;
 	for (i = start; i < rrset->rr_count; ++i) {
 #ifdef DNSX_GSLB
-      rr_record_idx = (uint16_t)(rrset->rrs[i].ttl>>16);
+		rr_record_idx = (uint16_t)(rrset->rrs[i].ttl>>16);
 		packet_encode_need = 0;
 		if (client_isp_rr_found)
 		{/* rr with dedicated line define */
@@ -232,16 +232,16 @@ packet_encode_rrset(query_type *query,
 #endif
 		if (packet_encode_need)
 #endif
-	{
-		if (packet_encode_rr(query, owner, &rrset->rrs[i],
-			(rrset->rrs[i].ttl&0xFFFF))) {
-			++added;
-		} else {
-			all_added = 0;
-			start = 0;
-			break;
+		{
+			if (packet_encode_rr(query, owner, &rrset->rrs[i],
+				(rrset->rrs[i].ttl&0xFFFF))) {
+				++added;
+			} else {
+				all_added = 0;
+				start = 0;
+				break;
+			}
 		}
-	}
 	}
 	for (i = 0; i < start; ++i) {
 #ifdef DNSX_GSLB
@@ -274,15 +274,15 @@ packet_encode_rrset(query_type *query,
 #endif
 		if (packet_encode_need)
 #endif
-	{
-		if (packet_encode_rr(query, owner, &rrset->rrs[i],
-			(rrset->rrs[i].ttl&0xFFFF))) {
-			++added;
-		} else {
-			all_added = 0;
-			break;
+		{
+			if (packet_encode_rr(query, owner, &rrset->rrs[i],
+				(rrset->rrs[i].ttl&0xFFFF))) {
+				++added;
+			} else {
+				all_added = 0;
+				break;
+			}
 		}
-	}
 	}
 	if (all_added &&
 	    query->edns.dnssec_ok &&
