@@ -83,8 +83,10 @@ struct nsd_options {
 	int zonefiles_write;
 	int log_time_ascii;
 	int round_robin;
+#ifdef DNSX_GSLB
 	int do_health_check;
 	const char *geo_db_filepath;
+#endif
         /** remote control section. enable toggle. */
 	int control_enable;
 	/** the interfaces the remote control should listen on */

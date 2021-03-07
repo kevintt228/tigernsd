@@ -102,6 +102,7 @@ static inline void dnsx_debug_rr(rr_type *rr)
 {
 }
 #endif
+#ifdef DNSX_GSLBx /* removed by kelphon */
 int dnsx_get_best_rr_from_rrset(query_type *q ,rrset_type *rrset)
 {
 	uint16_t i;
@@ -129,7 +130,7 @@ int dnsx_get_best_rr_from_rrset(query_type *q ,rrset_type *rrset)
 
 	return best;
 }
-
+#endif
 int dnsx_add_ip_rr_to_cache(rr_type *rr)
 {
 	geo_radix_node_rr_t *ret;		
@@ -307,7 +308,6 @@ geo_radix_node_rr_t *dnsx_search_ip_from_geodb(struct query *q)
 {
 	u64 client_ip;
 	u16 tmp;
-
 	geo_radix_node_rr_t *ret = NULL;
 
 	if (!q->geo_tree) {
@@ -317,17 +317,19 @@ geo_radix_node_rr_t *dnsx_search_ip_from_geodb(struct query *q)
 	client_ip = rrl_get_source(q, &tmp);
 #ifdef INET6
 	if (((struct sockaddr_in*)&q->addr)->sin_family == AF_INET6) {
+		return NULL;
 	} else 
 #endif
 	{
 		u32 cip = ntohl((u32)client_ip);
-		log_msg(LOG_INFO, "try to search %u.%u.%u.%u in GEO DB", ((u8 *)(&cip))[3],
-						((u8 *)(&cip))[2],((u8 *)(&cip))[1], ((u8 *)(&cip))[0]);
 		ret = (typeof(ret))geo_radix32tree_find(q->geo_tree, cip);
 		if (ret != (typeof(ret))GEO_RADIX_NO_VALUE) {
-			log_msg(LOG_INFO, "===>found entry %u %s", ret->isp_idx, ret->isp_province);
+			log_msg(LOG_INFO, "geoip %u.%u.%u.%u location idx=%u subidx=%s", ((u8 *)(&cip))[3],
+										((u8 *)(&cip))[2],((u8 *)(&cip))[1], ((u8 *)(&cip))[0], ret->isp_idx, ret->isp_province);
 		} else {
-			log_msg(LOG_INFO, "===>Not found entry");
+			log_msg(LOG_WARNING, "geoip %u.%u.%u.%u location failed", ((u8 *)(&cip))[3],
+										((u8 *)(&cip))[2],((u8 *)(&cip))[1], ((u8 *)(&cip))[0]);
+			return NULL;
 		}
 	}
 	return ret;

@@ -1265,13 +1265,20 @@ static int
 zrdatacmp(uint16_t type, rr_type *a, rr_type *b)
 {
 	int i = 0;
-
+	uint32_t a1;
+	a1 = 0xf245;
 	assert(a);
 	assert(b);
 
 	/* One is shorter than another */
 	if (a->rdata_count != b->rdata_count)
 		return 1;
+
+#ifdef DNSX_GSLB
+	/* check ttl's first 16bit */
+	if ((a->ttl&0xFFFF0000) != (b->ttl&0xFFFF0000))
+		return 1;
+#endif
 
 	/* Compare element by element */
 	for (i = 0; i < a->rdata_count; ++i) {
@@ -1447,9 +1454,12 @@ process_rr(void)
 		domain_add_rrset(rr->owner, rrset);
 	} else {
 		rr_type* o;
-		if (rr->type != TYPE_RRSIG && rrset->rrs[0].ttl != rr->ttl) {
+		if (rr->type != TYPE_RRSIG && (rrset->rrs[0].ttl&0xFFFF) != (rr->ttl&0xFFFF)) {
+			if ((rr->ttl&0xFFFF)<(rrset->rrs[0].ttl&0xFFFF))
+				rrset->rrs[0].ttl = rr->ttl;
+			else
 			zc_warning_prev_line(
-				"TTL does not match the TTL of the RRset");
+				"TTL does not match the TTL of the RRset rrs[0].ttl = %u rr->ttl = %u", rrset->rrs[0].ttl, rr->ttl);			
 		}
 
 		/* Search for possible duplicates... */
@@ -1475,7 +1485,7 @@ process_rr(void)
 		++rrset->rr_count;
 	}
 
-#ifdef DNSX_GSLB
+#ifdef DNSX_GSLBx /* kelphon removed */
 	if (rr->type == TYPE_A) {
 		dnsx_add_ip_rr_to_cache(&rrset->rrs[rrset->rr_count]-1);
 	}

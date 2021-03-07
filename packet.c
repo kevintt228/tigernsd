@@ -14,7 +14,9 @@
 #include "packet.h"
 #include "query.h"
 #include "rdata.h"
+#ifdef DNSX_GSLB
 #include "geo_core.h"
+#endif
 
 int round_robin = 0;
 
@@ -124,6 +126,18 @@ packet_encode_rrset(query_type *query,
 	size_t truncation_mark;
 	uint16_t added = 0;
 	int all_added = 1;
+#ifdef DNSX_GSLB	
+	uint16_t client_isp_idx = 0;
+	uint16_t rr_record_idx = 0;
+	uint8_t client_isp_rr_found = 0;
+	uint8_t client_china_rr_found = 0;
+	uint8_t client_china_isp_rr_found = 0;
+	uint8_t client_foreign_rr_found = 0;
+	uint8_t client_continent_rr_found = 0;
+	uint8_t client_country_rr_found = 0;
+	uint8_t client_diy_rr_found = 0;
+	uint8_t packet_encode_need = 0;
+#endif
 #ifdef MINIMAL_RESPONSES
 	int minimize_response = (section >= OPTIONAL_AUTHORITY_SECTION);
 	int truncate_rrset = (section == ANSWER_SECTION ||
@@ -142,26 +156,85 @@ packet_encode_rrset(query_type *query,
 	assert(rrset->rr_count > 0);
 
 	truncation_mark = buffer_position(query->packet);
-
 #ifdef DNSX_GSLB
-	i = dnsx_get_best_rr_from_rrset(query, rrset);
-	if (i >= 0 && i < rrset->rr_count) {
-		if (packet_encode_rr(query, owner, &rrset->rrs[i],
-			rrset->rrs[i].ttl)) {
-			++added;
-		} else {
-			all_added = 0;
-			start = 0;
-		}
-		goto rr_done;
+	if (query->client_isp){
+		client_isp_idx = query->client_isp->isp_idx + 1;
+		for (i = 0; i < rrset->rr_count; ++i) {
+			rr_record_idx = (uint16_t)(rrset->rrs[i].ttl>>16);
+			if (rr_record_idx == client_isp_idx)
+			{  /*dedicated line*/
+				client_isp_rr_found = 1;
+				break;
+			}
+			/*0100000000000000 0x4000 -> CHINA DEFAULT*/
+			else if (rr_record_idx == 0x4000)
+				client_china_rr_found = 1; 
+			/*0111111100000000 0x7FF0 -> CHINA ISP DEFAULT*/
+			else if (rr_record_idx == (rr_record_idx&0x7F00))
+				client_china_isp_rr_found = 1; 
+			/*1000000000000000 0x8000 -> FOREIGN DEFAULT*/
+			else if (rr_record_idx == 0x8000)
+				client_foreign_rr_found = 1; 
+			/*1000001111100000 0x81F0 -> FOREIGN CONTINENT DEFAULT*/
+			else if (rr_record_idx == (rr_record_idx&0x81F0))
+				client_continent_rr_found = 1;
+			/*1000000011111111 0x81FF -> FOREIGN COUNTRY DEFAULT*/
+			else if (rr_record_idx == (rr_record_idx&0x81FF))
+				client_country_rr_found = 1; 
+			/*1100000000000000 0xC000 -> SPIDER DEFAULT*/
+			else if (rr_record_idx == 0xC000)
+				client_diy_rr_found = 1; 
+		}	
 	}
+#ifdef DNSX_GSLB_DEBUG
+	log_msg(LOG_INFO, "client_isp_rr_found 0x0=%u client_china_rr_found 0x4000=%u "
+		"client_china_isp_rr_found 0x7F00=%u client_foreign_rr_found 0x8000=%u"
+		"client_continent_rr_found 0x81F0 =%u"
+		"client_country_rr_found 0x83FF=%u client_diy_rr_found 0xC000=%u", 
+		client_isp_rr_found, client_china_rr_found,
+		client_continent_rr_found,
+		client_china_isp_rr_found, client_foreign_rr_found,
+		client_country_rr_found, client_diy_rr_found);
 #endif
+#endif
+
 	if(do_robin && rrset->rr_count)
 		start = (uint16_t)(round_robin_off++ % rrset->rr_count);
 	else	start = 0;
 	for (i = start; i < rrset->rr_count; ++i) {
+#ifdef DNSX_GSLB
+      rr_record_idx = (uint16_t)(rrset->rrs[i].ttl>>16);
+		packet_encode_need = 0;
+		if (client_isp_rr_found)
+		{/* rr with dedicated line define */
+			if (rr_record_idx == client_isp_idx)
+				packet_encode_need = 1;
+		}
+		else
+		{/* with defualt line define */
+			if (client_china_isp_rr_found && (rr_record_idx==(client_isp_idx&0x7F00)))
+				packet_encode_need = 1;
+			else if (client_china_rr_found && (rr_record_idx==(client_isp_idx&0x4000)))
+				packet_encode_need = 1;
+			else if (client_country_rr_found && (rr_record_idx==(client_isp_idx&0x81FF)))
+				packet_encode_need = 1;
+			else if (client_continent_rr_found && (rr_record_idx==(client_isp_idx&0x81F0)))
+				packet_encode_need = 1;
+			else if (client_foreign_rr_found && (rr_record_idx==(client_isp_idx&0x8000)))
+				packet_encode_need = 1;
+			else if (client_diy_rr_found && (rr_record_idx==(client_isp_idx&0xC000)))
+				packet_encode_need = 1;
+			else if (rr_record_idx == 0) 
+				packet_encode_need = 1;
+		}
+#ifdef DNSX_GSLB_DEBUG
+		log_msg(LOG_INFO, "packet_encode_need = %u ttl = %u 0x%x rr_record_idx = 0x%x client_isp_idx = 0x%x", packet_encode_need, rrset->rrs[i].ttl, rrset->rrs[i].ttl, rr_record_idx, client_isp_idx);
+#endif
+		if (packet_encode_need)
+#endif
+	{
 		if (packet_encode_rr(query, owner, &rrset->rrs[i],
-			rrset->rrs[i].ttl)) {
+			(rrset->rrs[i].ttl&0xFFFF))) {
 			++added;
 		} else {
 			all_added = 0;
@@ -169,18 +242,48 @@ packet_encode_rrset(query_type *query,
 			break;
 		}
 	}
+	}
 	for (i = 0; i < start; ++i) {
+#ifdef DNSX_GSLB
+		rr_record_idx = (uint16_t)(rrset->rrs[i].ttl>>16);
+		packet_encode_need = 0;
+		if (client_isp_rr_found)
+		{/* rr with dedicated line define */
+			if (rr_record_idx == client_isp_idx)
+				packet_encode_need = 1;
+		}
+		else
+		{/* with defualt line define */
+			if (client_china_isp_rr_found && (rr_record_idx==(client_isp_idx&0x7F00)))
+				packet_encode_need = 1;
+			else if (client_china_rr_found && (rr_record_idx==(client_isp_idx&0x4000)))
+				packet_encode_need = 1;
+			else if (client_country_rr_found && (rr_record_idx==(client_isp_idx&0x81FF)))
+				packet_encode_need = 1;
+			else if (client_continent_rr_found && (rr_record_idx==(client_isp_idx&0x81F0)))
+				packet_encode_need = 1;
+			else if (client_foreign_rr_found && (rr_record_idx==(client_isp_idx&0x8000)))
+				packet_encode_need = 1;
+			else if (client_diy_rr_found && (rr_record_idx==(client_isp_idx&0xC000)))
+				packet_encode_need = 1;
+			else if (rr_record_idx == 0) 
+				packet_encode_need = 1;
+		}
+#ifdef DNSX_GSLB_DEBUG
+		log_msg(LOG_INFO, "packet_encode_need = %u ttl = %u 0x%x rr_record_idx = 0x%x client_isp_idx = 0x%x", packet_encode_need, rrset->rrs[i].ttl, rrset->rrs[i].ttl, rr_record_idx, client_isp_idx);
+#endif
+		if (packet_encode_need)
+#endif
+	{
 		if (packet_encode_rr(query, owner, &rrset->rrs[i],
-			rrset->rrs[i].ttl)) {
+			(rrset->rrs[i].ttl&0xFFFF))) {
 			++added;
 		} else {
 			all_added = 0;
 			break;
 		}
 	}
-#ifdef DNSX_GSLB
-rr_done:
-#endif
+	}
 	if (all_added &&
 	    query->edns.dnssec_ok &&
 	    zone_is_secure(rrset->zone) &&

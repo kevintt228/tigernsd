@@ -773,6 +773,18 @@ case "$enable_gslb" in
 esac
 AC_SUBST(gslb)
 
+AC_ARG_ENABLE(gslbdebug, AC_HELP_STRING([--enable-gslb-debug], [Enable GSLB debug]))
+case "$enable_gslb_debug" in
+   yes)
+      AC_DEFINE_UNQUOTED([GSLB_DEBUG], [], [Define this to enable GSLB debug.])
+      dnl causes awk to not match the exclusion start marker.
+      gslbdebug="xx"
+      ;;		
+	no|*)
+      gslbdebug=""
+      ;;
+esac
+AC_SUBST(gslbdebug)
 
 # we need SSL for TSIG (and maybe also for NSEC3).
 CHECK_SSL

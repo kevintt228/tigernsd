@@ -626,6 +626,7 @@ SSL_LIBS
 HAVE_SSL
 ratelimit
 gslb
+gslbdebug
 LIBOBJS
 YFLAGS
 YACC
@@ -725,6 +726,7 @@ enable_bind8_stats
 enable_checking
 enable_ratelimit
 enable_gslb
+enable_gslb_debug
 with_ssl
 enable_nsec3
 enable_minimal_responses
@@ -1361,6 +1363,8 @@ Optional Features:
   --enable-checking       Enable internal runtime checks
   --enable-ratelimit      Enable rate limiting
   --enable-gslb           Enable global server load balancing
+  --enable-gslb-debug     Enable global server load balancing debug
+
   --disable-nsec3         Disable NSEC3 support
   --disable-minimal-responses
                           Disable response minimization. More truncation.
@@ -8439,7 +8443,6 @@ if test "${enable_gslb+set}" = set; then :
   enableval=$enable_gslb;
 fi
 
-#as_fn_error $? "enable_gslb= $enable_gslb" "$LINENO" 5
 case "$enable_gslb" in
 	yes)
 
@@ -8454,6 +8457,24 @@ _ACEOF
 		;;
 esac
 
+# Check whether --enable-gslb-debug was given.
+if test "${enable_gslb_debug+set}" = set; then :
+  enableval=$enable_gslb_debug;
+fi
+
+case "$enable_gslb_debug" in
+     yes)
+
+cat >>confdefs.h <<_ACEOF
+#define DNSX_GSLB_DEBUG /**/
+_ACEOF
+
+      		gslbdebug="xx"
+      ;;
+   no|*)
+      gslbdebug=""
+      ;;
+esac
 
 
 # we need SSL for TSIG (and maybe also for NSEC3).

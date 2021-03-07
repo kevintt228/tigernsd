@@ -14,8 +14,9 @@ typedef struct svc_ipv4_hash_item_type {
 	u8  isp_province[2];
 } svc_ipv4_hash_item_t;
 
-
+#ifdef DNSX_GSLBx /* removed by kelphon */
 int dnsx_get_best_rr_from_rrset(query_type *q ,rrset_type *rrset);
+#endif
 geo_radix_node_rr_t *dnsx_search_ip_from_geodb(struct query *q);
 inline void dnsx_attach_rr_to_cache(svc_ipv4_hash_item_t *hash_item, rr_type *rr);
 inline void dnsx_dettach_rr_from_cache(rr_type *rr);

@@ -417,6 +417,9 @@
 /* Define this to enable GSLB. */
 #undef DNSX_GSLB
 
+/* Define this to enable GSLB debug. */
+#undef DNSX_GSLB_DEBUG
+
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 

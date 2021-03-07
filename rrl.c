@@ -122,6 +122,9 @@ void rrl_init(size_t ch)
 uint64_t rrl_get_source(query_type* query, uint16_t* c2)
 {
 	if (query->edns.client_subnet_ok) {
+#ifdef DNSX_GSLB_DEBUG	
+		log_msg(LOG_INFO, "edns client subnet ok");
+#endif		
 		switch (ntohs(query->edns.client_subnet.family)) {
 			case EDNS_CLIENT_SUBNET_IPV4:
 				*c2 = 0;
@@ -142,6 +145,9 @@ uint64_t rrl_get_source(query_type* query, uint16_t* c2)
 	/* note there is an IPv6 subnet, that maps
 	 * to the same buckets as IPv4 space, but there is a flag in c2
 	 * that makes the hash different */
+#ifdef DNSX_GSLB_DEBUG	 
+	log_msg(LOG_INFO, "query client address");
+#endif
 #ifdef INET6
 	if( ((struct sockaddr_in*)&query->addr)->sin_family == AF_INET) {
 		*c2 = 0;

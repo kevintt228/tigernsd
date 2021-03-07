@@ -1216,8 +1216,6 @@ answer_query(struct nsd *nsd, struct query *q)
 	answer_type answer;
 	
 	answer_init(&answer);
-	q->geo_tree = nsd->geo_tree;
-
 	exact = namedb_lookup(nsd->db, q->qname, &closest_match, &closest_encloser);
 	if (!closest_encloser->is_existing) {
 		exact = 0;
@@ -1234,6 +1232,11 @@ answer_query(struct nsd *nsd, struct query *q)
 
 	offset = dname_label_offsets(q->qname)[domain_dname(closest_encloser)->label_count - 1] + QHEADERSZ;
 	query_add_compression_domain(q, closest_encloser, offset);
+#ifdef DNSX_GSLB
+/*	 log_msg(LOG_INFO, "check isp idx before answer_query");
+*/	 q->geo_tree = nsd->geo_tree;
+    q->client_isp = dnsx_search_ip_from_geodb(q);
+#endif
 	encode_answer(q, &answer);
 	query_clear_compression_tables(q);
 }
@@ -1341,6 +1344,7 @@ query_process(query_type *q, nsd_type *nsd)
 			--arcount;
 	}
 	/* See if there is an OPT RR. */
+	q->edns.client_subnet_ok = 0;
 	if (arcount > 0) {
 		if (edns_parse_record(&q->edns, q->packet))
 			--arcount;
@@ -1395,7 +1399,6 @@ query_process(query_type *q, nsd_type *nsd)
 	if (query_state == QUERY_PROCESSED || query_state == QUERY_IN_AXFR) {
 		return query_state;
 	}
-
 	answer_query(nsd, q);
 
 	return QUERY_PROCESSED;

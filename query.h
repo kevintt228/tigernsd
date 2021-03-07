@@ -35,6 +35,7 @@ struct query {
 	region_type *region;
 #ifdef DNSX_GSLB
 	geo_radix_tree_t *geo_tree;
+	geo_radix_node_rr_t *client_isp;
 #endif
 	/*
 	 * The address the query was received from.

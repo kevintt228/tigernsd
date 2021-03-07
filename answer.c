@@ -81,7 +81,11 @@ encode_answer(query_type *q, const answer_type *answer)
 
 		for (i = 0; !TC(q->packet) && i < answer->rrset_count; ++i) {
 			if (answer->section[i] == section) {
-				counts[section] += packet_encode_rrset(
+/*			   if (q->client_isp ==NULL)
+	      		log_msg(LOG_INFO, "encode_answer q->client_isp isnull");
+			   else
+				   log_msg(LOG_INFO, "encode_answer q->client_isp not null idx=%u", q->client_isp->isp_idx);
+*/				counts[section] += packet_encode_rrset(
 					q,
 					answer->domains[i],
 					answer->rrsets[i],

@@ -1,4 +1,4 @@
-const char * geo_isp_name_idx[] = {
+/*const char * geo_isp_name_idx[] = {
 "CHINANET", 
 "UNICOM", 
 "CMNET", 
@@ -21,4 +21,4 @@ const char * geo_isp_name_idx[] = {
 "EASTERNFIBERNET", 
 "LiaoHe", 
 "CTN", 
-};
+};*/

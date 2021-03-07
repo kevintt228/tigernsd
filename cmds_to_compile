@@ -1,5 +1,9 @@
 #!/bin/bash
 make realclean
 #./configure --with-libevent=no CFLAGS="-g" --enable-ratelimit --enable-gslb
-./configure CFLAGS="-g" --enable-ratelimit --enable-gslb
+./configure CFLAGS="-g" --enable-ratelimit --enable-gslb --enable-gslb-debug
 make
+make install
+nsd-control stop
+nsd-control start
+tail -f /var/log/nsd.log
